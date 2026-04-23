@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:loopin/models/daha_sonra_izle_model.dart';
+import 'package:loopin/pages/abonelik_page.dart';
 import 'package:loopin/pages/admin_panel_page.dart';
 import 'package:loopin/pages/arama_page.dart';
 import 'package:loopin/pages/begenilenler_page.dart';
@@ -528,6 +529,30 @@ class _HomePageState extends State<HomePage> {
                 MaterialPageRoute(
                   builder: (context) =>
                       BegenilenlerPage(currentUser: _currentUser!),
+                ),
+              );
+            },
+          ),
+          _drawerItem(
+            Icons.subscriptions,
+            "Aboneliklerim",
+            onTap: () {
+              Navigator.pop(context);
+              if (_currentUser == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Giriş yapmadan bu sayfaya erişemezsiniz.'),
+                  ),
+                );
+                Navigator.pushReplacementNamed(context, '/login');
+                return;
+              }
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      AboneliklerPage(currentUser: _currentUser!),
                 ),
               );
             },

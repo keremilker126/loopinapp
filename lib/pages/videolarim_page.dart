@@ -10,11 +10,8 @@ class VideolarimPage extends StatefulWidget {
   final UserModel currentUser;
   final UserModel? loggedInUser; // Şu anda login olan kullanıcı
 
-  const VideolarimPage({
-    Key? key, 
-    required this.currentUser,
-    this.loggedInUser,
-  }) : super(key: key);
+  const VideolarimPage({Key? key, required this.currentUser, this.loggedInUser})
+    : super(key: key);
 
   @override
   State<VideolarimPage> createState() => _VideolarimPageState();
@@ -23,7 +20,7 @@ class VideolarimPage extends StatefulWidget {
 class _VideolarimPageState extends State<VideolarimPage> {
   final VideoService _videoService = VideoService();
   final AbonelikService _abonelikService = AbonelikService();
-  
+
   // Tasarım Renkleri
   final Color bgColor = const Color(0xFF0F0F14);
   final Color cardColor = const Color(0xFF1A1A22);
@@ -47,20 +44,21 @@ class _VideolarimPageState extends State<VideolarimPage> {
         widget.currentUser.id,
         widget.currentUser.id,
       );
-      
+
       // Eğer başkasının kanalı bakıyorsa, abone durumunu kontrol et
       bool subStatus = false;
-      if (widget.loggedInUser != null && widget.loggedInUser!.id != widget.currentUser.id) {
+      if (widget.loggedInUser != null &&
+          widget.loggedInUser!.id != widget.currentUser.id) {
         final subCheck = await _abonelikService.checkSubscriptionStatus(
           widget.loggedInUser!.id,
           widget.currentUser.id,
         );
         subStatus = subCheck['isSubscribed'] ?? false;
       }
-      
+
       // Minimum 1 saniye loading göster
       await Future.delayed(const Duration(seconds: 1));
-      
+
       if (mounted) {
         setState(() {
           _aboneSayisi = response['subscriberCount'] ?? 0;
@@ -86,14 +84,12 @@ class _VideolarimPageState extends State<VideolarimPage> {
           elevation: 0,
           centerTitle: true,
           title: const Text(
-            "Videolarım", 
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)
+            "Videolarım",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
           iconTheme: IconThemeData(color: purpleColor),
         ),
-        body: Center(
-          child: CircularProgressIndicator(color: purpleColor),
-        ),
+        body: Center(child: CircularProgressIndicator(color: purpleColor)),
       );
     }
 
@@ -104,8 +100,12 @@ class _VideolarimPageState extends State<VideolarimPage> {
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          "Videolarım", 
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)
+          "Videolarım",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Colors.white,
+          ),
         ),
         iconTheme: IconThemeData(color: purpleColor),
       ),
@@ -116,9 +116,7 @@ class _VideolarimPageState extends State<VideolarimPage> {
             padding: EdgeInsets.symmetric(horizontal: 20.0),
             child: Divider(color: Colors.white10, thickness: 1),
           ),
-          Expanded(
-            child: _buildUserVideoList(),
-          ),
+          Expanded(child: _buildUserVideoList()),
         ],
       ),
     );
@@ -126,8 +124,10 @@ class _VideolarimPageState extends State<VideolarimPage> {
 
   // Üst Kısım: Profil Resmi, İsim ve Güncel Abone Sayısı
   Widget _buildProfileHeader() {
-    final bool isOwnProfile = widget.loggedInUser?.id == widget.currentUser.id || widget.loggedInUser == null;
-    
+    final bool isOwnProfile =
+        widget.loggedInUser?.id == widget.currentUser.id ||
+        widget.loggedInUser == null;
+
     return Container(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -136,10 +136,14 @@ class _VideolarimPageState extends State<VideolarimPage> {
             radius: 35,
             backgroundColor: purpleColor.withOpacity(0.1),
             child: Text(
-              widget.currentUser.kullaniciAdi.isNotEmpty 
-                  ? widget.currentUser.kullaniciAdi[0].toUpperCase() 
+              widget.currentUser.kullaniciAdi.isNotEmpty
+                  ? widget.currentUser.kullaniciAdi[0].toUpperCase()
                   : "?",
-              style: TextStyle(color: purpleColor, fontSize: 28, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: purpleColor,
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           const SizedBox(width: 20),
@@ -149,7 +153,11 @@ class _VideolarimPageState extends State<VideolarimPage> {
               children: [
                 Text(
                   widget.currentUser.kullaniciAdi,
-                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Row(
@@ -158,8 +166,11 @@ class _VideolarimPageState extends State<VideolarimPage> {
                     const SizedBox(width: 6),
                     Text(
                       // API'den gerçek abone sayısını çekiyoruz
-                      "$_aboneSayisi Abone", 
-                      style: const TextStyle(color: Colors.white60, fontSize: 14),
+                      "$_aboneSayisi Abone",
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
@@ -181,7 +192,10 @@ class _VideolarimPageState extends State<VideolarimPage> {
                   ? const SizedBox(
                       width: 16,
                       height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
                     )
                   : Text(_isSubscribed ? "Abonelikten Çık" : "Abone Ol"),
             ),
@@ -199,18 +213,18 @@ class _VideolarimPageState extends State<VideolarimPage> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(child: CircularProgressIndicator(color: purpleColor));
         }
-        
+
         if (snapshot.hasError) {
           return Center(
             child: Text(
-              "Hata: ${snapshot.error}", 
-              style: const TextStyle(color: Colors.redAccent)
+              "Hata: ${snapshot.error}",
+              style: const TextStyle(color: Colors.redAccent),
             ),
           );
         }
 
         var videolar = snapshot.data ?? [];
-        
+
         // Videoları seçilen tipe göre sırala
         videolar = _sortVideos(videolar);
 
@@ -219,11 +233,15 @@ class _VideolarimPageState extends State<VideolarimPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.video_collection_outlined, color: Colors.white10, size: 100),
+                Icon(
+                  Icons.video_collection_outlined,
+                  color: Colors.white10,
+                  size: 100,
+                ),
                 const SizedBox(height: 16),
                 const Text(
-                  "Henüz bir video paylaşmadınız.", 
-                  style: TextStyle(color: Colors.white38, fontSize: 16)
+                  "Henüz bir video paylaşmadınız.",
+                  style: TextStyle(color: Colors.white38, fontSize: 16),
                 ),
               ],
             ),
@@ -239,15 +257,18 @@ class _VideolarimPageState extends State<VideolarimPage> {
                 value: _sortType,
                 dropdownColor: cardColor,
                 style: const TextStyle(color: Colors.white),
-                underline: Container(
-                  height: 2,
-                  color: purpleColor,
-                ),
+                underline: Container(height: 2, color: purpleColor),
                 items: const [
                   DropdownMenuItem(value: 'en_yeni', child: Text('En Yeni')),
                   DropdownMenuItem(value: 'en_eski', child: Text('En Eski')),
-                  DropdownMenuItem(value: 'en_cok_izlenen', child: Text('En Çok İzlenen')),
-                  DropdownMenuItem(value: 'en_begenilen', child: Text('En Beğenilen')),
+                  DropdownMenuItem(
+                    value: 'en_cok_izlenen',
+                    child: Text('En Çok İzlenen'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'en_begenilen',
+                    child: Text('En Beğenilen'),
+                  ),
                 ],
                 onChanged: (value) {
                   if (value != null) {
@@ -260,7 +281,10 @@ class _VideolarimPageState extends State<VideolarimPage> {
             ),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 15,
+                  vertical: 10,
+                ),
                 itemCount: videolar.length,
                 itemBuilder: (context, index) {
                   final video = videolar[index];
@@ -278,7 +302,7 @@ class _VideolarimPageState extends State<VideolarimPage> {
   List<VideoModel> _sortVideos(List<VideoModel> videos) {
     // Listeyi kopyala (immutable liste sorunu için)
     final sortedVideos = List<VideoModel>.from(videos);
-    
+
     switch (_sortType) {
       case 'en_eski':
         sortedVideos.sort((a, b) => a.id.compareTo(b.id));
@@ -328,19 +352,23 @@ class _VideolarimPageState extends State<VideolarimPage> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   // Video Kart Tasarımı
   Widget _buildSmallVideoCard(VideoModel video) {
-    return InkWell( // GestureDetector yerine InkWell daha iyi bir tıklama efekti verir
+    return InkWell(
+      // GestureDetector yerine InkWell daha iyi bir tıklama efekti verir
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => IzlePage(video: video, currentUser: widget.currentUser),
+            builder: (context) => IzlePage(
+              video: video,
+              currentUser: widget.loggedInUser, // 🔥 login user gönderiliyor
+            ),
           ),
         );
       },
@@ -354,14 +382,20 @@ class _VideolarimPageState extends State<VideolarimPage> {
           children: [
             // Video Thumbnail
             ClipRRect(
-              borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
+              borderRadius: const BorderRadius.horizontal(
+                left: Radius.circular(12),
+              ),
               child: Image.network(
                 _videoService.kapakResmiUrlAl(video.kapakResmiUrl),
                 width: 130,
                 height: 85,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => 
-                  Container(width: 130, height: 85, color: Colors.white10, child: const Icon(Icons.broken_image, color: Colors.white24)),
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 130,
+                  height: 85,
+                  color: Colors.white10,
+                  child: const Icon(Icons.broken_image, color: Colors.white24),
+                ),
               ),
             ),
             // Video Detayları
@@ -373,14 +407,21 @@ class _VideolarimPageState extends State<VideolarimPage> {
                   children: [
                     Text(
                       video.baslik,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       "${video.izlenmeSayisi} izlenme • ${video.likeSayisi} beğeni",
-                      style: const TextStyle(color: Colors.white38, fontSize: 11),
+                      style: const TextStyle(
+                        color: Colors.white38,
+                        fontSize: 11,
+                      ),
                     ),
                   ],
                 ),
@@ -388,7 +429,11 @@ class _VideolarimPageState extends State<VideolarimPage> {
             ),
             // İşlemler (Sil/Düzenle)
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: Colors.white54, size: 20),
+              icon: const Icon(
+                Icons.more_vert,
+                color: Colors.white54,
+                size: 20,
+              ),
               color: cardColor,
               onSelected: (value) async {
                 if (value == 'delete') {
@@ -398,8 +443,10 @@ class _VideolarimPageState extends State<VideolarimPage> {
                 }
               },
               itemBuilder: (BuildContext context) => [
-                
-                const PopupMenuItem(value: 'delete', child: Text('Sil', style: TextStyle(color: Colors.redAccent))),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Text('Sil', style: TextStyle(color: Colors.redAccent)),
+                ),
               ],
             ),
           ],
@@ -422,7 +469,10 @@ class _VideolarimPageState extends State<VideolarimPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Vazgeç", style: TextStyle(color: Colors.white54)),
+            child: const Text(
+              "Vazgeç",
+              style: TextStyle(color: Colors.white54),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -447,7 +497,10 @@ class _VideolarimPageState extends State<VideolarimPage> {
       builder: (context) => AlertDialog(
         backgroundColor: cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        title: const Text("Video Düzenle", style: TextStyle(color: Colors.white)),
+        title: const Text(
+          "Video Düzenle",
+          style: TextStyle(color: Colors.white),
+        ),
         content: const Text(
           "Video düzenleme özelliği yakında eklenecek.",
           style: TextStyle(color: Colors.white70),

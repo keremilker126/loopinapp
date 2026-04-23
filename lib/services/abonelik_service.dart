@@ -54,4 +54,18 @@ class AbonelikService {
     }
     return null;
   }
+
+  // abonelik_service.dart içine ekle
+  Future<List<Map<String, dynamic>>> getFollowing(int userId) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/following/$userId'));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      }
+    } catch (e) {
+      print("Takip edilenleri getirme hatası: $e");
+    }
+    return [];
+  }
 }
