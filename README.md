@@ -1,17 +1,51 @@
-# loopin
+# 📱 Loopin - Mobile (Flutter)
 
-A new Flutter project.
+Modern ve kullanıcı dostu bir video paylaşım platformunun mobil uygulaması.  
+Loopin Mobile, kullanıcıların videoları keşfedebildiği, izleyebildiği ve etkileşimde bulunabildiği Flutter tabanlı bir uygulamadır.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 🚀 Özellikler
 
-A few resources to get you started if this is your first Flutter project:
+### 👤 Kullanıcı İşlemleri
+- 🔐 Giriş yapma & oturum yönetimi
+- 📧 Email doğrulama entegrasyonu
+- 🔑 Şifre sıfırlama desteği
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+---
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### 🎬 Video Özellikleri
+- ▶️ Video izleme (detay sayfası)
+- 👍 Beğenme / beğeni kaldırma
+- 👁 İzlenme sayısı gösterimi
+- 💬 Yorum görüntüleme ve ekleme
+
+---
+
+### ⭐ Kullanıcı Deneyimi
+- 🎨 Modern ve akıcı UI tasarım
+- ⚡ Hızlı API entegrasyonu
+- 🔄 Pull-to-refresh desteği
+- 📱 Responsive mobil arayüz
+
+---
+
+### 📌 Ekstra Özellikler
+- ⏳ Daha Sonra İzle listesi
+- ❤️ Beğenilen videolar sayfası
+- 🔍 Video & kullanıcı arama
+- 👤 Kullanıcı (kanal) sayfası
+
+---
+
+## 🛠 Kullanılan Teknolojiler
+
+### 📱 Mobile
+- Flutter
+- Dart
+
+---
+
+### 🔌 API & Backend
+- ASP.NET Core Web API
+- JSON REST API
