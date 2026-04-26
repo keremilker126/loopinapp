@@ -1,20 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'dart:io'; // 🔥 Mobilde dosya işlemleri için
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import '../models/video_model.dart';
 import 'package:http_parser/http_parser.dart';
 
 class VideoService {
-  String get apiBaseUrl {
-    if (kIsWeb) {
-      final scheme = Uri.base.scheme.isEmpty ? 'http' : Uri.base.scheme;
-      final host = Uri.base.host.isEmpty ? 'localhost' : Uri.base.host;
-      return '$scheme://$host:5144';
-    }
-    return 'http://localhost:5144';
-  }
+  // 🔥 Mobilde localhost yerine LAN IP kullan
+  final String apiBaseUrl = "http://10.0.2.2:5144"; // kendi bilgisayar IP adresini yaz
 
   String get baseUrl => '$apiBaseUrl/api/VideoApi';
 
@@ -25,7 +19,7 @@ class VideoService {
         List<dynamic> body = jsonDecode(response.body);
         return body.map((dynamic item) => VideoModel.fromJson(item)).toList();
       } else {
-        throw 'Videolar yüklenemedi.';
+        throw 'Videolar yüklenemedi (${response.statusCode}).';
       }
     } catch (e) {
       throw 'Hata: $e';
@@ -77,6 +71,7 @@ class VideoService {
     }
   }
 
+  // 🔥 Mobilde dosya yükleme için fromPath kullanıyoruz
   Future<String?> videoYukle({
     required XFile videoFile,
     required XFile imageFile,
@@ -84,7 +79,7 @@ class VideoService {
     required String aciklama,
     required int kullaniciId,
   }) async {
-    var client = http.Client(); // Bağlantıyı manuel yönetmek için
+    var client = http.Client();
     try {
       var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/upload'));
 
@@ -92,29 +87,22 @@ class VideoService {
       request.fields['aciklama'] = aciklama;
       request.fields['kullaniciId'] = kullaniciId.toString();
 
-      // 🔥 WEB İÇİN KRİTİK: Byte olarak okuma
-      final videoBytes = await videoFile.readAsBytes();
-      final imageBytes = await imageFile.readAsBytes();
-
       request.files.add(
-        http.MultipartFile.fromBytes(
-          'videoDosyası',
-          videoBytes,
-          filename: videoFile.name,
-          contentType: _getMediaType(videoFile.name),
+        await http.MultipartFile.fromPath(
+          'videoDosyasi',
+          videoFile.path,
+          contentType: _getMediaType(videoFile.path),
         ),
       );
 
       request.files.add(
-        http.MultipartFile.fromBytes(
+        await http.MultipartFile.fromPath(
           'kapakResmi',
-          imageBytes,
-          filename: imageFile.name,
-          contentType: _getMediaType(imageFile.name),
+          imageFile.path,
+          contentType: _getMediaType(imageFile.path),
         ),
       );
 
-      // Gönderim ve Cevap Bekleme
       var streamedResponse = await client.send(request);
       var response = await http.Response.fromStream(streamedResponse);
 
@@ -126,7 +114,7 @@ class VideoService {
     } catch (e) {
       return "Bağlantı hatası: $e";
     } finally {
-      client.close(); // İşlem bitince soketi serbest bırak
+      client.close();
     }
   }
 
@@ -143,13 +131,10 @@ class VideoService {
       throw 'Hata: $e';
     }
   }
-  // VideoService sınıfının içine ekleyin:
 
   Future<List<VideoModel>> kullaniciVideolariniGetir(int userId) async {
     try {
-      // Backend'deki [HttpGet("user/{userId}")] endpoint'ine istek atar
       final response = await http.get(Uri.parse('$baseUrl/user/$userId'));
-
       if (response.statusCode == 200) {
         List<dynamic> body = jsonDecode(response.body);
         return body.map((dynamic item) => VideoModel.fromJson(item)).toList();
@@ -164,17 +149,12 @@ class VideoService {
   Future<bool> videoSil(int videoId) async {
     try {
       final response = await http.delete(Uri.parse('$baseUrl/$videoId'));
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        throw 'Video silinemedi (${response.statusCode})';
-      }
+      return response.statusCode == 200;
     } catch (e) {
       throw 'Hata: $e';
     }
   }
 
-  // Video ID'sine göre tek bir video getir (Detaylı bilgiler ile)
   Future<VideoModel> videoDetayiGetir(int videoId) async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/$videoId'));
@@ -188,15 +168,17 @@ class VideoService {
       throw 'Hata: $e';
     }
   }
+
   Future<VideoModel> getVideoById(int videoId) async {
-  final response = await http.get(Uri.parse("http://localhost:5144/api/GecmisApi/video/$videoId"));
+    final response = await http.get(
+      Uri.parse("$apiBaseUrl/api/GecmisApi/video/$videoId"),
+    );
 
-  if (response.statusCode == 200) {
-    final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
-    return VideoModel.fromJson(data);
-  } else {
-    throw Exception("Video bulunamadı: ${response.statusCode}");
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
+      return VideoModel.fromJson(data);
+    } else {
+      throw Exception("Video bulunamadı: ${response.statusCode}");
+    }
   }
-}
-
 }

@@ -7,9 +7,8 @@ import 'videolarim_page.dart';
 import 'izle_page.dart';
 
 class AboneliklerPage extends StatefulWidget {
-  final UserModel currentUser;
-  const AboneliklerPage({Key? key, required this.currentUser})
-    : super(key: key);
+  final UserModel currentUser; // 🔥 login olmuş kullanıcı
+  const AboneliklerPage({Key? key, required this.currentUser}) : super(key: key);
 
   @override
   State<AboneliklerPage> createState() => _AboneliklerPageState();
@@ -33,17 +32,13 @@ class _AboneliklerPageState extends State<AboneliklerPage> {
 
   Future<List<UserModel>> _getFollowingUsers() async {
     final response = await _abonelikService.getFollowing(widget.currentUser.id);
-    return response
-        .map(
-          (u) => UserModel(
-            id: u['id'],
-            kullaniciAdi: u['kullaniciAdi'],
-            email: u['email'],
-            emailOnayli: true,
-            aboneSayisi: 0,
-          ),
-        )
-        .toList();
+    return response.map((u) => UserModel(
+      id: u['id'],
+      kullaniciAdi: u['kullaniciAdi'],
+      email: u['email'],
+      emailOnayli: true,
+      aboneSayisi: u['aboneSayisi'] ?? 0,
+    )).toList();
   }
 
   @override
@@ -69,10 +64,8 @@ class _AboneliklerPageState extends State<AboneliklerPage> {
 
           if (snapshot.hasError) {
             return Center(
-              child: Text(
-                "Hata: ${snapshot.error}",
-                style: const TextStyle(color: Colors.white),
-              ),
+              child: Text("Hata: ${snapshot.error}",
+                  style: const TextStyle(color: Colors.white)),
             );
           }
 
@@ -102,7 +95,6 @@ class _AboneliklerPageState extends State<AboneliklerPage> {
     );
   }
 
-  // 🔥 USER CARD
   Widget _buildUserCard(UserModel user) {
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
@@ -114,7 +106,7 @@ class _AboneliklerPageState extends State<AboneliklerPage> {
             color: Colors.black.withOpacity(0.5),
             blurRadius: 15,
             offset: const Offset(0, 8),
-          ),
+          )
         ],
       ),
       child: InkWell(
@@ -124,7 +116,7 @@ class _AboneliklerPageState extends State<AboneliklerPage> {
             context,
             MaterialPageRoute(
               builder: (_) => VideolarimPage(
-                currentUser: user, // kanal sahibi
+                currentUser: user,              // kanal sahibi
                 loggedInUser: widget.currentUser, // 🔥 login user
               ),
             ),
@@ -134,46 +126,27 @@ class _AboneliklerPageState extends State<AboneliklerPage> {
           padding: const EdgeInsets.all(14),
           child: Row(
             children: [
-              // Avatar
               CircleAvatar(
                 radius: 25,
                 backgroundColor: purpleColor.withOpacity(0.2),
                 child: Text(
                   user.kullaniciAdi[0].toUpperCase(),
-                  style: TextStyle(
-                    color: purpleColor,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(color: purpleColor, fontWeight: FontWeight.bold),
                 ),
               ),
-
               const SizedBox(width: 12),
-
-              // USER INFO
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      user.kullaniciAdi,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    Text(user.kullaniciAdi,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    Text(
-                      user.email,
-                      style: const TextStyle(
-                        color: Colors.white54,
-                        fontSize: 12,
-                      ),
-                    ),
+                    Text(user.email,
+                        style: const TextStyle(color: Colors.white54, fontSize: 12)),
                   ],
                 ),
               ),
-
-              // ACTION BUTTON
               InkWell(
                 onTap: () => _openUserVideos(user),
                 borderRadius: BorderRadius.circular(30),
@@ -193,7 +166,6 @@ class _AboneliklerPageState extends State<AboneliklerPage> {
     );
   }
 
-  // 🔥 USER VIDEOS MODAL
   void _openUserVideos(UserModel user) async {
     final videos = await _videoService.kullaniciVideolariniGetir(user.id);
 
@@ -216,17 +188,13 @@ class _AboneliklerPageState extends State<AboneliklerPage> {
           itemCount: videos.length,
           itemBuilder: (context, i) {
             final video = videos[i];
-
             return ListTile(
               leading: Image.network(
                 _videoService.kapakResmiUrlAl(video.kapakResmiUrl),
                 width: 80,
                 fit: BoxFit.cover,
               ),
-              title: Text(
-                video.baslik,
-                style: const TextStyle(color: Colors.white),
-              ),
+              title: Text(video.baslik, style: const TextStyle(color: Colors.white)),
               subtitle: Text(
                 "${video.izlenmeSayisi} izlenme • ${video.likeSayisi} beğeni",
                 style: const TextStyle(color: Colors.white54),
@@ -235,8 +203,10 @@ class _AboneliklerPageState extends State<AboneliklerPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) =>
-                        IzlePage(video: video, currentUser: widget.currentUser),
+                    builder: (_) => IzlePage(
+                      video: video,
+                      currentUser: widget.currentUser, // 🔥 login user
+                    ),
                   ),
                 );
               },
@@ -247,7 +217,6 @@ class _AboneliklerPageState extends State<AboneliklerPage> {
     );
   }
 
-  // 🔥 EMPTY STATE
   Widget _emptyState() {
     return Center(
       child: Column(
@@ -261,7 +230,6 @@ class _AboneliklerPageState extends State<AboneliklerPage> {
     );
   }
 
-  // 🔥 LOADING
   Widget _loadingSkeleton() {
     return ListView.builder(
       padding: const EdgeInsets.all(12),

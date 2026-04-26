@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
   // API base URL (Resim yolları için gerekli)
 
   final String apiBaseUrl =
-      "http://localhost:5144"; // Kendi API adresinize göre güncelle (Örn: http://localhost:5144)
+      "http://10.0.2.2:5144"; // Kendi API adresinize göre güncelle (Örn: http://localhost:5144)
 
   // --- ADMIN LİSTESİ ---
 

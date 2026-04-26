@@ -1,19 +1,12 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/login_model.dart';
 import '../models/register_model.dart';
 import '../models/user_model.dart';
 
 class AuthService {
-  String get apiBaseUrl {
-    if (kIsWeb) {
-      final scheme = Uri.base.scheme.isEmpty ? 'http' : Uri.base.scheme;
-      final host = Uri.base.host.isEmpty ? 'localhost' : Uri.base.host;
-      return '$scheme://$host:5144';
-    }
-    return 'http://localhost:5144';
-  }
+  // 🔥 Mobilde localhost yerine LAN IP kullan
+  final String apiBaseUrl = "http://10.0.2.2:5144"; // kendi bilgisayar IP adresini yaz
 
   String get baseUrl => '$apiBaseUrl/api/auth';
 
@@ -63,17 +56,13 @@ class AuthService {
     return null;
   }
 
-  // --- ŞİFRE SIFIRLAMA METODLARI ---
-
-  /// ADIM 1: E-posta gönderip doğrulama kodu talep etme
   Future<Map<String, dynamic>> forgotPasswordStep1(String email) async {
     try {
       final response = await http.post(
-        Uri.parse("$baseUrl/forgot-password"), // Backend endpoint'in
+        Uri.parse("$baseUrl/forgot-password"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"email": email}),
       );
-
       final data = jsonDecode(response.body);
       return {
         "success": response.statusCode == 200,
@@ -84,15 +73,14 @@ class AuthService {
     }
   }
 
-  /// ADIM 2: Kod ve yeni şifre ile şifreyi güncelleme
   Future<Map<String, dynamic>> forgotPasswordStep2(
-    String email, 
-    String code, 
-    String newPassword
+    String email,
+    String code,
+    String newPassword,
   ) async {
     try {
       final response = await http.post(
-        Uri.parse("$baseUrl/reset-password"), // Backend endpoint'in
+        Uri.parse("$baseUrl/reset-password"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "email": email,
@@ -100,7 +88,6 @@ class AuthService {
           "newPassword": newPassword,
         }),
       );
-
       final data = jsonDecode(response.body);
       return {
         "success": response.statusCode == 200,
@@ -111,7 +98,6 @@ class AuthService {
     }
   }
 
-  // Mevcut şifre değiştirme (Profil sayfası için)
   Future<Map<String, dynamic>> changePassword(
     String email,
     String currentPassword,
@@ -127,7 +113,6 @@ class AuthService {
           "newPassword": newPassword,
         }),
       );
-
       final data = jsonDecode(response.body);
       return {
         "success": response.statusCode == 200,
@@ -137,9 +122,9 @@ class AuthService {
       return {"success": false, "message": "Bağlantı hatası: $e"};
     }
   }
+
   Future<UserModel> getUserById(int id) async {
     final response = await http.get(Uri.parse("$baseUrl/user/$id"));
-
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = jsonDecode(utf8.decode(response.bodyBytes));
       return UserModel.fromJson(data);

@@ -23,7 +23,7 @@ class _DahaSonraIzlePageState extends State<DahaSonraIzlePage> {
   final Color cardColor = const Color(0xFF1A1A22);
   final Color purpleColor = const Color(0xFF8B5CF6);
 
-  final String apiBaseUrl = "http://localhost:5144";
+  final String apiBaseUrl = "http://10.0.2.2:5144"; // kendi bilgisayar IP adresini yaz
 
   @override
   void initState() {

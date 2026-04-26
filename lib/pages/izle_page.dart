@@ -23,7 +23,7 @@ class IzlePage extends StatefulWidget {
 }
 
 class _IzlePageState extends State<IzlePage> {
-  late VideoPlayerController _controller;
+  VideoPlayerController? _controller;
   final AbonelikService _abonelikService = AbonelikService();
   final BegenmeService _begenmeService = BegenmeService();
   final VideoService _videoService = VideoService();
@@ -141,20 +141,41 @@ class _IzlePageState extends State<IzlePage> {
   }
 
   void _videoHazirla() async {
-    _controller =
-        VideoPlayerController.networkUrl(
-            Uri.parse("${_videoService.apiBaseUrl}${widget.video.videoUrl}"),
-          )
-          ..initialize().then((_) {
-            if (mounted) {
-              setState(() {
-                _isInitialized = true;
-              });
-            }
-          });
+    final videoPath = widget.video.videoUrl;
 
-    _controller.addListener(() {
-      if (mounted) setState(() {});
+    if (videoPath == null || videoPath.isEmpty) {
+      print("VIDEO URL BOŞ ❌");
+      return;
+    }
+
+    final fullUrl = widget.video.videoUrl!.startsWith("http")
+        ? widget.video.videoUrl!
+        : "${_videoService.apiBaseUrl}/${widget.video.videoUrl!.replaceFirst('/', '')}";
+
+    print("VIDEO URL: $fullUrl");
+
+    _controller = VideoPlayerController.networkUrl(Uri.parse(fullUrl))
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() => _isInitialized = true);
+        }
+      });
+
+    // 🔥 BURASI FIX
+    _controller!.addListener(() {
+      if (!_controller!.value.isInitialized) return;
+
+      // Video bitti mi?
+      if (_controller!.value.position >= _controller!.value.duration &&
+          !_controller!.value.isPlaying) {
+        if (mounted) {
+          setState(() {
+            // videoyu başa sar (crash yerine reset)
+            _controller?.seekTo(Duration.zero);
+            _controller?.pause();
+          });
+        }
+      }
     });
   }
 
@@ -183,7 +204,11 @@ class _IzlePageState extends State<IzlePage> {
   @override
   void dispose() {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    _controller.dispose();
+
+    if (_isInitialized && _controller != null) {
+      _controller!.dispose();
+    }
+
     _commentController.dispose();
     super.dispose();
   }
@@ -276,7 +301,7 @@ class _IzlePageState extends State<IzlePage> {
 
   Widget _buildChannelSection() {
     final bool isMyVideo = widget.currentUser?.id == widget.video.kullaniciId;
-    
+
     return InkWell(
       onTap: () {
         // Kanal profiline git
@@ -333,7 +358,9 @@ class _IzlePageState extends State<IzlePage> {
               ElevatedButton(
                 onPressed: _isLoadingSubscription ? null : _aboneOlTetikle,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _isSubscribed ? Colors.white10 : Colors.white,
+                  backgroundColor: _isSubscribed
+                      ? Colors.white10
+                      : Colors.white,
                   foregroundColor: _isSubscribed ? Colors.white : Colors.black,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -379,9 +406,9 @@ class _IzlePageState extends State<IzlePage> {
             ? Stack(
                 alignment: Alignment.center,
                 children: [
-                  VideoPlayer(_controller),
+                  if (_controller != null) VideoPlayer(_controller!),
                   _VideoOverlayControls(
-                    controller: _controller,
+                    controller: _controller!,
                     onToggleFullScreen: _toggleFullScreen,
                     isFullScreen: _isFullScreen,
                     purpleColor: purpleColor,
@@ -529,6 +556,7 @@ class _VideoOverlayControls extends StatefulWidget {
 class _VideoOverlayControlsState extends State<_VideoOverlayControls> {
   bool _showControls = true;
   double _playbackSpeed = 1.0;
+  
 
   @override
   Widget build(BuildContext context) {
@@ -590,6 +618,8 @@ class _VideoOverlayControlsState extends State<_VideoOverlayControls> {
                         color: Colors.white,
                       ),
                       onPressed: () {
+                        if (!widget.controller.value.isInitialized) return;
+
                         setState(() {
                           if (widget.controller.value.isPlaying) {
                             widget.controller.pause();
@@ -653,10 +683,18 @@ class _VideoOverlayControlsState extends State<_VideoOverlayControls> {
                           child: Slider(
                             activeColor: widget.purpleColor,
                             inactiveColor: Colors.white24,
-                            value: widget.controller.value.volume,
-                            onChanged: (vol) => setState(
-                              () => widget.controller.setVolume(vol),
+                            min: 0.0,
+                            max: 1.0,
+                            value: widget.controller.value.volume.clamp(
+                              0.0,
+                              1.0,
                             ),
+                            onChanged: (vol) {
+                              final safeVolume = vol.clamp(0.0, 1.0);
+                              setState(() {
+                                widget.controller.setVolume(safeVolume);
+                              });
+                            },
                           ),
                         ),
                         const Spacer(),

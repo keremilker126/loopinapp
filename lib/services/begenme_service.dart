@@ -4,9 +4,11 @@ import '../models/begenme_model.dart';
 import '../models/video_model.dart';
 
 class BegenmeService {
-  final String baseUrl = "http://localhost:5144/api/BegenmeApi";
+  // 🔥 Mobilde localhost yerine LAN IP kullan
+  final String baseUrl = "http://10.0.2.2:5144/api/BegenmeApi"; 
+  // kendi bilgisayar IP adresini yaz
 
-  // Beğeni Durumunu Kontrol Et (YENİ EKLENEN METOD)
+  // Beğeni Durumunu Kontrol Et
   Future<bool> checkLikeStatus(int kullaniciId, int videoId) async {
     try {
       final response = await http.get(
@@ -14,7 +16,6 @@ class BegenmeService {
       );
 
       if (response.statusCode == 200) {
-        // Backend'den direkt bool (true/false) veya { "isLiked": true } döndüğünü varsayıyoruz
         final data = jsonDecode(response.body);
         if (data is bool) return data;
         return data['isLiked'] ?? false;
@@ -41,11 +42,11 @@ class BegenmeService {
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        print("Begenme Hatası: ${response.statusCode} - ${response.body}");
+        print("Beğenme Hatası: ${response.statusCode} - ${response.body}");
         return null;
       }
     } catch (e) {
-      print("Begenme Servis Hatası: $e");
+      print("Beğenme Servis Hatası: $e");
       return null;
     }
   }
@@ -66,6 +67,8 @@ class BegenmeService {
       return [];
     }
   }
+
+  // Beğeniyi Kaldır
   Future<bool> removeLike(int kullaniciId, int videoId) async {
     try {
       final response = await http.delete(

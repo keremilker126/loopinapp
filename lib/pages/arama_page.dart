@@ -152,7 +152,7 @@ class _AramaPageState extends State<AramaPage> with SingleTickerProviderStateMix
                 ClipRRect(
                   borderRadius: const BorderRadius.horizontal(left: Radius.circular(14)),
                   child: Image.network(
-                    "http://localhost:5144/${v.kapakResmiUrl}",
+                    "http://10.0.2.2:5144/${v.kapakResmiUrl}",
                     width: 130,
                     height: 85,
                     fit: BoxFit.cover,
