@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../models/login_model.dart';
+import '../models/user_model.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,6 +15,13 @@ class _LoginPageState extends State<LoginPage> {
   final _passwordController = TextEditingController();
   final _codeController = TextEditingController();
   final _authService = AuthService();
+  final List<String> _adminEmails = [
+    'keremilker56@gmail.com',
+
+    'keremilker126@gmail.com',
+
+    'mehmedkaan46@gmail.com',
+  ];
 
   bool _isCodeSent = false;
   bool _isLoading = false;
@@ -31,17 +39,40 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => _errorMessage = "Lütfen tüm alanları doldurun.");
       return;
     }
-    setState(() { _isLoading = true; _errorMessage = null; });
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    final email = _emailController.text.trim().toLowerCase();
+    final isAdmin = _adminEmails.contains(email);
 
     final res = await _authService.login(
       LoginModel(
-        email: _emailController.text.trim(),
+        email: email,
         sifre: _passwordController.text.trim(),
       ),
     );
 
     if (res['success'] == true) {
-      setState(() { _isCodeSent = true; _isLoading = false; });
+      final requiresVerification = res['requiresVerification'] == true;
+      if (isAdmin || requiresVerification) {
+        setState(() {
+          _isCodeSent = true;
+          _isLoading = false;
+        });
+      } else {
+        final user = res['user'] as UserModel?;
+        if (user != null) {
+          if (!mounted) return;
+          Navigator.pushReplacementNamed(context, '/home', arguments: user);
+        } else {
+          setState(() {
+            _errorMessage = "Giriş başarılı, ancak kullanıcı bilgisi alınamadı.";
+            _isLoading = false;
+          });
+        }
+      }
     } else {
       setState(() {
         _errorMessage = res['message'];
@@ -79,13 +110,19 @@ class _LoginPageState extends State<LoginPage> {
       builder: (context) => AlertDialog(
         backgroundColor: cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("Şifremi Sıfırla", style: TextStyle(color: Colors.white)),
+        title: const Text(
+          "Şifremi Sıfırla",
+          style: TextStyle(color: Colors.white),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               "E-posta adresinizi girin. Sistemde kayıtlıysa size bir onay kodu göndereceğiz.",
-              style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 13),
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 13,
+              ),
             ),
             const SizedBox(height: 20),
             _modernInput(resetEmailController, "E-posta", Icons.email_outlined),
@@ -94,7 +131,10 @@ class _LoginPageState extends State<LoginPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Vazgeç", style: TextStyle(color: Colors.white.withOpacity(0.5))),
+            child: Text(
+              "Vazgeç",
+              style: TextStyle(color: Colors.white.withOpacity(0.5)),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: purpleColor),
@@ -118,7 +158,10 @@ class _LoginPageState extends State<LoginPage> {
                 }
               }
             },
-            child: const Text("Kod Gönder", style: TextStyle(color: Colors.white)),
+            child: const Text(
+              "Kod Gönder",
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -136,24 +179,38 @@ class _LoginPageState extends State<LoginPage> {
       builder: (context) => AlertDialog(
         backgroundColor: cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("Yeni Şifre Belirle", style: TextStyle(color: Colors.white)),
+        title: const Text(
+          "Yeni Şifre Belirle",
+          style: TextStyle(color: Colors.white),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               "$email adresine gönderilen kodu ve yeni şifrenizi girin.",
-              style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 13),
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.6),
+                fontSize: 13,
+              ),
             ),
             const SizedBox(height: 20),
             _modernInput(resetCodeController, "Onay Kodu", Icons.security),
             const SizedBox(height: 15),
-            _modernInput(newPasswordController, "Yeni Şifre", Icons.lock_reset, isPass: true),
+            _modernInput(
+              newPasswordController,
+              "Yeni Şifre",
+              Icons.lock_reset,
+              isPass: true,
+            ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("İptal", style: TextStyle(color: Colors.white.withOpacity(0.5))),
+            child: Text(
+              "İptal",
+              style: TextStyle(color: Colors.white.withOpacity(0.5)),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
@@ -162,7 +219,11 @@ class _LoginPageState extends State<LoginPage> {
               final newPass = newPasswordController.text.trim();
               if (code.isEmpty || newPass.isEmpty) return;
 
-              final res = await _authService.forgotPasswordStep2(email, code, newPass);
+              final res = await _authService.forgotPasswordStep2(
+                email,
+                code,
+                newPass,
+              );
 
               if (mounted) {
                 if (res['success'] == true) {
@@ -183,7 +244,10 @@ class _LoginPageState extends State<LoginPage> {
                 }
               }
             },
-            child: const Text("Şifreyi Güncelle", style: TextStyle(color: Colors.white)),
+            child: const Text(
+              "Şifreyi Güncelle",
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -209,7 +273,7 @@ class _LoginPageState extends State<LoginPage> {
                   color: Colors.black.withOpacity(0.5),
                   blurRadius: 30,
                   offset: const Offset(0, 10),
-                )
+                ),
               ],
             ),
             child: Column(
@@ -233,40 +297,64 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  _isCodeSent ? "Güvenlik Kodunu Girin" : "Modern Video Platformu",
-                  style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 14),
+                  _isCodeSent
+                      ? "Güvenlik Kodunu Girin"
+                      : "Modern Video Platformu",
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.5),
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox(height: 35),
 
                 if (_errorMessage != null) _errorBox(_errorMessage!),
 
                 if (!_isCodeSent) ...[
-                  _modernInput(_emailController, "E-posta", Icons.alternate_email),
+                  _modernInput(
+                    _emailController,
+                    "E-posta",
+                    Icons.alternate_email,
+                  ),
                   const SizedBox(height: 20),
-                  _modernInput(_passwordController, "Şifre", Icons.lock_outline, isPass: true),
-                  
+                  _modernInput(
+                    _passwordController,
+                    "Şifre",
+                    Icons.lock_outline,
+                    isPass: true,
+                  ),
+
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: _showForgotPasswordStep1,
                       child: Text(
                         "Şifremi Unuttum",
-                        style: TextStyle(color: purpleColor.withOpacity(0.8), fontSize: 13),
+                        style: TextStyle(
+                          color: purpleColor.withOpacity(0.8),
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 10),
                   _modernBtn("Giriş Yap", _login, purpleColor),
                 ] else ...[
-                  _modernInput(_codeController, "6 Haneli Doğrulama Kodu", Icons.security_outlined),
+                  _modernInput(
+                    _codeController,
+                    "6 Haneli Doğrulama Kodu",
+                    Icons.security_outlined,
+                  ),
                   const SizedBox(height: 30),
                   _modernBtn("Doğrula ve Giriş Yap", _verify, purpleColor),
                   TextButton(
                     onPressed: () => setState(() => _isCodeSent = false),
                     child: Text(
                       "Geri Dön",
-                      style: TextStyle(color: purpleColor.withOpacity(0.7), fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        color: purpleColor.withOpacity(0.7),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
@@ -278,12 +366,19 @@ class _LoginPageState extends State<LoginPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("Henüz üye değil misin?", style: TextStyle(color: Colors.white.withOpacity(0.6))),
+                    Text(
+                      "Henüz üye değil misin?",
+                      style: TextStyle(color: Colors.white.withOpacity(0.6)),
+                    ),
                     TextButton(
-                      onPressed: () => Navigator.pushNamed(context, '/register'),
+                      onPressed: () =>
+                          Navigator.pushNamed(context, '/register'),
                       child: Text(
                         "Kayıt Ol",
-                        style: TextStyle(color: purpleColor, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: purpleColor,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
@@ -298,14 +393,22 @@ class _LoginPageState extends State<LoginPage> {
 
   // --- MODERN COMPONENTLER ---
 
-  Widget _modernInput(TextEditingController ctrl, String label, IconData icon, {bool isPass = false}) {
+  Widget _modernInput(
+    TextEditingController ctrl,
+    String label,
+    IconData icon, {
+    bool isPass = false,
+  }) {
     return TextField(
       controller: ctrl,
       obscureText: isPass,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 14),
+        labelStyle: TextStyle(
+          color: Colors.white.withOpacity(0.4),
+          fontSize: 14,
+        ),
         filled: true,
         fillColor: bgColor.withOpacity(0.8),
         prefixIcon: Icon(icon, color: purpleColor, size: 20),
@@ -317,7 +420,10 @@ class _LoginPageState extends State<LoginPage> {
           borderRadius: BorderRadius.circular(15),
           borderSide: BorderSide(color: purpleColor, width: 1.5),
         ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 20,
+          horizontal: 16,
+        ),
       ),
     );
   }
@@ -333,10 +439,18 @@ class _LoginPageState extends State<LoginPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: color,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
                 elevation: 0,
               ),
-              child: Text(text, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              child: Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
     );
   }
@@ -355,7 +469,12 @@ class _LoginPageState extends State<LoginPage> {
         children: [
           const Icon(Icons.error_outline, color: Colors.redAccent, size: 20),
           const SizedBox(width: 10),
-          Expanded(child: Text(msg, style: const TextStyle(color: Colors.redAccent, fontSize: 13))),
+          Expanded(
+            child: Text(
+              msg,
+              style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+            ),
+          ),
         ],
       ),
     );

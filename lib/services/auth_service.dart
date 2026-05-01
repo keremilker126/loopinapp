@@ -31,10 +31,15 @@ class AuthService {
         body: jsonEncode(model.toJson()),
       );
       final data = jsonDecode(response.body);
+      UserModel? user;
+      if (data['user'] != null && data['user'] is Map<String, dynamic>) {
+        user = UserModel.fromJson(data['user']);
+      }
       return {
         "success": response.statusCode == 200,
         "requiresVerification": data['requiresVerification'] ?? false,
         "message": data['message'] ?? "Hata oluştu",
+        "user": user,
       };
     } catch (e) {
       return {"success": false, "message": "Bağlantı kesildi!"};

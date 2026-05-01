@@ -12,7 +12,7 @@ class VideoYuklePage extends StatefulWidget {
 
 class _VideoYuklePageState extends State<VideoYuklePage> {
   // Web üzerinde 400 MB makul bir limit, ancak tarayıcı RAM'ine dikkat edilmeli.
-  static const int _maxVideoFileSize = 400 * 1024 * 1024; 
+  static const int _maxVideoFileSize = 300 * 1024 * 1024; 
 
   final VideoService _videoService = VideoService();
   final ImagePicker _picker = ImagePicker();
@@ -26,23 +26,43 @@ class _VideoYuklePageState extends State<VideoYuklePage> {
 
   // Galeriden Video Seç
   Future<void> _pickVideo() async {
-    final XFile? video = await _picker.pickVideo(source: ImageSource.gallery);
-    if (video != null) {
-      final int videoSize = await video.length();
-      if (videoSize > _maxVideoFileSize) {
-        _showSnackBar("Seçilen video 400 MB'den büyük olamaz.", Colors.orangeAccent);
+    try {
+      final XFile? video = await _picker.pickVideo(source: ImageSource.gallery);
+      if (video == null) {
         return;
       }
+
+      final int videoSize = await _getFileSize(video);
+      if (videoSize > _maxVideoFileSize) {
+        _showSnackBar("Seçilen video 300 MB'den büyük olamaz.", Colors.orangeAccent);
+        return;
+      }
+
       setState(() => _selectedVideo = video);
+    } catch (e) {
+      _showSnackBar("Video seçilirken bir hata oluştu: $e", Colors.redAccent);
     }
   }
 
   // Galeriden Kapak Resmi Seç
   Future<void> _pickImage() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image == null) {
+        return;
+      }
       setState(() => _selectedImage = image);
+    } catch (e) {
+      _showSnackBar("Kapak resmi seçilirken bir hata oluştu: $e", Colors.redAccent);
     }
+  }
+
+  Future<int> _getFileSize(XFile file) async {
+    if (file.path.isNotEmpty) {
+      return await file.length();
+    }
+    final bytes = await file.readAsBytes();
+    return bytes.length;
   }
 
   // Ana Yükleme Fonksiyonu
